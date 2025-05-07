@@ -10,8 +10,8 @@ with h5py.File("Box.hdf5", "r") as f:
     polys = []
     for mesh_id in sorted(mesh_root.keys(), key=int): # get names like 000, 001, ... and sort them numerically
         grp = mesh_root[mesh_id]
-        pts = grp["points"][...]       # shape (4,3)
-        tris = grp["triangle"][...]    # shape (2,3)
+        pts = grp["points"][...]       # shape (4,3), absolute coords of each vertex
+        tris = grp["triangle"][...]    # shape (2,3), how those vertices connect to form triangles
 
         # VTK wants faces in "flat" format: [3, i0, i1, i2,  3, j0, j1, j2, …]
         faces = np.hstack([
