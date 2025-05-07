@@ -2,13 +2,13 @@ import h5py
 import numpy as np
 import pyvista as pv
 
-# --- 1) Open and locate the mesh groups ---
+# Open and locate the mesh groups 
 with h5py.File("Box.hdf5", "r") as f:
-    mesh_root = f["parts"]["part_001"]["mesh"]
+    mesh_root = f["parts"]["part_001"]["mesh"] # contains subgroups 000, 001, ... which each contain one small mesh
 
-    # --- 2) Load each sub-mesh into a PolyData and collect them ---
+    # Load each sub-mesh into a PolyData and collect them
     polys = []
-    for mesh_id in sorted(mesh_root.keys(), key=int):
+    for mesh_id in sorted(mesh_root.keys(), key=int): # get names like 000, 001, ... and sort them numerically
         grp = mesh_root[mesh_id]
         pts = grp["points"][...]       # shape (4,3)
         tris = grp["triangle"][...]    # shape (2,3)
@@ -17,21 +17,19 @@ with h5py.File("Box.hdf5", "r") as f:
         faces = np.hstack([
             np.concatenate([[3], tri.astype(np.int64)])
             for tri in tris
-        ])
+        ]) # loop over each triangle, prepend the count 3, cast to int64, then horizontally stack them all into one flat array
 
-        poly = pv.PolyData(pts, faces)
+        poly = pv.PolyData(pts, faces) # builds PolyData objects, which are the small meshes in parts 000, 001, ...
         polys.append(poly)
 
-# --- 3) Merge all sub-meshes into one (optional) ---
+# Merge all sub-meshes into one (optional)
 mesh = polys[0]
 for poly in polys[1:]:
     mesh = mesh.merge(poly)
 
-# --- 4) Render & save screenshot ---
+# Render & save screenshot
 plotter = pv.Plotter(off_screen=True)
 plotter.add_mesh(mesh, show_edges=True)
 plotter.set_background("white")
 plotter.camera_position = "iso"
 plotter.show(screenshot="Box.png")
-
-print("Wrote Box.png")
