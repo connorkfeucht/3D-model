@@ -2,6 +2,8 @@ import h5py
 import numpy as np
 import pyvista as pv
 
+# Using PyVista to render images of .hdf5 3D models
+
 # Open and locate the mesh groups 
 with h5py.File("Box.hdf5", "r") as f:
     mesh_root = f["parts"]["part_001"]["mesh"] # contains subgroups 000, 001, ... which each contain one small mesh
@@ -29,7 +31,9 @@ for poly in polys[1:]:
 
 # Render & save screenshot
 plotter = pv.Plotter(off_screen=True)
-plotter.add_mesh(mesh, show_edges=True)
-plotter.set_background("white")
-plotter.camera_position = "iso"
+plotter.add_mesh(mesh, color="white")
+plotter.set_background("black")
+plotter.camera_position = "iso" # can be "xy" "zy" or a point
+plotter.line_smoothing = True
+# might want to use image_scale at some point to make images smaller or larger
 plotter.show(screenshot="Box.png")
