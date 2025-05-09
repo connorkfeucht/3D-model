@@ -4,8 +4,7 @@ import numpy as np
 import pyvista as pv
 
 # Using PyVista to render images of .hdf5 3D models
-
-
+# TODO: Improve quality of code
 def main(argc, argv):
     if argc != 2:
         print("Please specify an argument")
