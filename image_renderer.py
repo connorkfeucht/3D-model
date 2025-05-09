@@ -37,3 +37,10 @@ plotter.camera_position = "iso" # can be "xy" "zy" or a point
 plotter.line_smoothing = True
 # might want to use image_scale at some point to make images smaller or larger
 plotter.show(screenshot="Box.png")
+
+plotter = pv.Plotter(off_screen=True)
+plotter.add_mesh(mesh, color="white")
+plotter.set_background("black")
+plotter.camera_position = "xy"
+plotter.line_smoothing = True
+plotter.show(screenshot="Box2.png")
