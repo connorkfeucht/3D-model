@@ -1,17 +1,31 @@
 import h5py
 import sys
+import os
+import glob
 import numpy as np
 import pyvista as pv
 
-# Using PyVista to render images of .hdf5 3D models
-# TODO: Improve quality of code
-def main(argc, argv):
-    if argc != 2:
-        print("Please specify an argument")
-        return
-    
-    filename = argv[1]
+def plot_mesh(mesh, output1, output2):
+    # plotter code here
+    # Render & save screenshot
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_mesh(mesh, color="white")
+    plotter.set_background("black")
+    plotter.camera_position = "iso" # can be "xy" "zy" or a point
+    plotter.line_smoothing = True
+    # might want to use image_scale at some point to make images smaller or larger
+    plotter.show(screenshot=output1)
 
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_mesh(mesh, color="white")
+    plotter.set_background("black")
+    plotter.camera_position = "xy"
+    plotter.line_smoothing = True
+    plotter.show(screenshot=output2)
+
+
+def parse_mesh(filename, output1, output2):
+    # parsing code here
     # Open and locate the mesh groups 
     with h5py.File(filename, "r") as f:
         mesh_root = f["parts"]["part_001"]["mesh"] # contains subgroups 000, 001, ... which each contain one small mesh
@@ -36,22 +50,28 @@ def main(argc, argv):
     mesh = polys[0]
     for poly in polys[1:]:
         mesh = mesh.merge(poly)
+    
+    plot_mesh(mesh, output1, output2)
 
-    # Render & save screenshot
-    plotter = pv.Plotter(off_screen=True)
-    plotter.add_mesh(mesh, color="white")
-    plotter.set_background("black")
-    plotter.camera_position = "iso" # can be "xy" "zy" or a point
-    plotter.line_smoothing = True
-    # might want to use image_scale at some point to make images smaller or larger
-    plotter.show(screenshot="Output.png")
+# Using PyVista to render images of .hdf5 3D models
+# TODO: Improve quality of code
+def main(argc, argv):
+    if argc != 2:
+        print("Please specify a path to the directory which the input files are stored as an argument. ie: /path/to/my/hdf5_folder")
+        return
+    
+    target_dir = argv[1]
+    if not os.path.isdir(target_dir):
+        print(f"Error: “{target_dir}” is not a directory.")
+        sys.exit(1)
 
-    plotter = pv.Plotter(off_screen=True)
-    plotter.add_mesh(mesh, color="white")
-    plotter.set_background("black")
-    plotter.camera_position = "xy"
-    plotter.line_smoothing = True
-    plotter.show(screenshot="Output2.png")
+    os.chdir(target_dir)
+    for hdf5_file in glob.glob("*.hdf5"):
+        name = os.path.splitext(hdf5_file)[0]
+        output1 = f"{name}1.png"
+        output2 = f"{name}2.png"
+        parse_mesh(hdf5_file, output1, output2)
+
 
 if __name__ == "__main__":
     main(len(sys.argv), sys.argv)
