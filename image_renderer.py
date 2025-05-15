@@ -5,8 +5,12 @@ import glob
 import numpy as np
 import pyvista as pv
 
-def plot_mesh(mesh, output1, output2):
-    # plotter code here
+def plot_mesh(mesh, output1, output2, orig_dir, target_dir):
+    os.chdir(orig_dir)
+    output_dir = os.path.join(orig_dir, "output")
+    os.makedirs(output_dir, exist_ok=True)
+    os.chdir(output_dir)
+
     # Render & save screenshot
     plotter = pv.Plotter(off_screen=True)
     plotter.add_mesh(mesh, color="white")
@@ -23,9 +27,11 @@ def plot_mesh(mesh, output1, output2):
     plotter.line_smoothing = True
     plotter.show(screenshot=output2)
 
+    os.chdir("..")
+    os.chdir(target_dir)
 
-def parse_mesh(filename, output1, output2):
-    # parsing code here
+
+def parse_mesh(filename, output1, output2, orig_dir, target_dir):
     # Open and locate the mesh groups 
     with h5py.File(filename, "r") as f:
         mesh_root = f["parts"]["part_001"]["mesh"] # contains subgroups 000, 001, ... which each contain one small mesh
@@ -51,15 +57,15 @@ def parse_mesh(filename, output1, output2):
     for poly in polys[1:]:
         mesh = mesh.merge(poly)
     
-    plot_mesh(mesh, output1, output2)
+    plot_mesh(mesh, output1, output2, orig_dir, target_dir)
 
 # Using PyVista to render images of .hdf5 3D models
-# TODO: Improve quality of code
 def main(argc, argv):
     if argc != 2:
         print("Please specify a path to the directory which the input files are stored as an argument. ie: /path/to/my/hdf5_folder")
         return
     
+    orig_dir = os.getcwd()
     target_dir = argv[1]
     if not os.path.isdir(target_dir):
         print(f"Error: “{target_dir}” is not a directory.")
@@ -70,7 +76,7 @@ def main(argc, argv):
         name = os.path.splitext(hdf5_file)[0]
         output1 = f"{name}1.png"
         output2 = f"{name}2.png"
-        parse_mesh(hdf5_file, output1, output2)
+        parse_mesh(hdf5_file, output1, output2, orig_dir, target_dir)
 
 
 if __name__ == "__main__":
